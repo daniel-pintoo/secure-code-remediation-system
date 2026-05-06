@@ -12,6 +12,13 @@ tested end to end with a real API key and active billing.
 
 For now, the recommended demo path is mock mode, which requires no paid API access.
 
+## Visual Demo
+
+The visual interface lets reviewers run the analyzer-backed remediation flow locally, inspect the selected
+vulnerability pattern, compare initial and final findings, and review the fixed code.
+
+![AI-Assisted Secure Code Remediation System visual interface](https://raw.githubusercontent.com/daniel-pintoo/secure-code-remediation-system/main/Demo.png)
+
 ## Architecture
 
 ```text
@@ -125,13 +132,6 @@ http://127.0.0.1:8000
 From the page, choose one of the built-in vulnerable snippets, keep `Use real AI API` unchecked, and click
 `Run remediation`. The app will run the analyzer-backed remediation loop and show the final fixed code plus
 a readable comparative report.
-
-## Visual Demo
-
-The visual interface lets reviewers run the analyzer-backed remediation flow locally, inspect the selected
-vulnerability pattern, compare initial and final findings, and review the fixed code.
-
-![AI-Assisted Secure Code Remediation System visual interface](https://raw.githubusercontent.com/daniel-pintoo/secure-code-remediation-system/main/Demo.png)
 
 ## Components
 
