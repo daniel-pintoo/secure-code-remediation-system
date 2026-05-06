@@ -1,0 +1,29 @@
+{
+  "responses": [
+    {
+      "match": ["SQLi", "execute", "executemany", "RawSQL"],
+      "explanation": "The SQL injection flow is remediated by passing user-controlled input through the configured SQL sanitizer before it reaches the execute sink.",
+      "code": "def vulnerable_lookup(request, cursor):\n    user_id = request.args.get(\"id\")\n    safe_user_id = parametrize(user_id)\n    query = \"SELECT * FROM users WHERE id = \" + safe_user_id\n    cursor.execute(query)"
+    },
+    {
+      "match": ["XSS", "render_template_string", "render_template", "mark_safe", "Markup", "make_response"],
+      "explanation": "The XSS flow is remediated by escaping user-controlled input before it reaches an HTML rendering sink.",
+      "code": "def vulnerable_profile(request):\n    display_name = request.args.get(\"name\")\n    safe_display_name = escape(display_name)\n    html = \"<h1>\" + safe_display_name + \"</h1>\"\n    render_template_string(html)"
+    },
+    {
+      "match": ["CommandInjection", "system", "popen", "Popen", "check_output", "check_call"],
+      "explanation": "The command injection flow is remediated by applying the configured command sanitizer before invoking the command sink.",
+      "code": "def vulnerable_command(request):\n    host = request.args.get(\"host\")\n    safe_host = shlex_quote(host)\n    command = \"ping -c 1 \" + safe_host\n    system(command)"
+    },
+    {
+      "match": ["PathTraversal", "open", "send_file", "FileResponse", "send_from_directory"],
+      "explanation": "The path traversal flow is remediated by normalizing the user-controlled filename with a configured path sanitizer before file access.",
+      "code": "def vulnerable_download(request):\n    filename = request.args.get(\"file\")\n    safe_filename = secure_filename(filename)\n    open(safe_filename)"
+    },
+    {
+      "match": ["SSRF", "urlopen", "urlretrieve"],
+      "explanation": "The SSRF flow is remediated by validating the user-controlled URL before it reaches a network request sink.",
+      "code": "def vulnerable_fetch(request):\n    target_url = request.args.get(\"url\")\n    safe_url = validate_url(target_url)\n    urlopen(safe_url)"
+    }
+  ]
+}

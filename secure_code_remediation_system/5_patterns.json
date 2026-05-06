@@ -1,0 +1,112 @@
+[
+    {
+        "vulnerability": "XSS",
+        "sources": [
+            "get",
+            "input",
+            "get_json"
+        ],
+        "sanitizers": [
+            "escape",
+            "html_escape",
+            "clean",
+            "bleach_clean",
+            "sanitize"
+        ],
+        "sinks": [
+            "mark_safe",
+            "Markup",
+            "render_template",
+            "render_template_string",
+            "make_response"
+        ],
+        "implicit": "no"
+    },
+    {
+        "vulnerability": "SQLi",
+        "sources": [
+            "get",
+            "input",
+            "get_json"
+        ],
+        "sanitizers": [
+            "mogrify",
+            "escape_string",
+            "quote",
+            "parametrize",
+            "parameterize"
+        ],
+        "sinks": [
+            "execute",
+            "executemany",
+            "raw",
+            "RawSQL"
+        ],
+        "implicit": "no"
+    },
+    {
+        "vulnerability": "CommandInjection",
+        "sources": [
+            "get",
+            "input",
+            "get_json"
+        ],
+        "sanitizers": [
+            "quote",
+            "shlex_quote"
+        ],
+        "sinks": [
+            "system",
+            "popen",
+            "Popen",
+            "run",
+            "call",
+            "check_call",
+            "check_output"
+        ],
+        "implicit": "yes"
+    },
+    {
+        "vulnerability": "PathTraversal",
+        "sources": [
+            "get",
+            "input",
+            "get_json"
+        ],
+        "sanitizers": [
+            "basename",
+            "normpath",
+            "realpath",
+            "abspath",
+            "secure_filename"
+        ],
+        "sinks": [
+            "open",
+            "send_file",
+            "FileResponse",
+            "send_from_directory"
+        ],
+        "implicit": "yes"
+    },
+    {
+        "vulnerability": "SSRF",
+        "sources": [
+            "get",
+            "input",
+            "get_json"
+        ],
+        "sanitizers": [
+            "validate_url",
+            "is_safe_url",
+            "is_private_ip",
+            "is_safe_host"
+        ],
+        "sinks": [
+            "urlopen",
+            "urlretrieve"
+        ],
+        "implicit": "no"
+    }
+]
+
+

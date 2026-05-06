@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI-Assisted Secure Code Remediation System</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1220;
+        --panel: #111c31;
+        --panel-strong: #17243c;
+        --text: #edf4ff;
+        --muted: #9fb0d0;
+        --accent: #77e3c4;
+        --accent-strong: #5bd3ff;
+        --danger: #ff7b8a;
+        --line: rgba(170, 192, 255, 0.18);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(91, 211, 255, 0.18), transparent 30%),
+          radial-gradient(circle at top right, rgba(119, 227, 196, 0.15), transparent 24%),
+          var(--bg);
+      }
+
+      main {
+        width: min(1280px, calc(100% - 1.25rem));
+        margin: 0 auto;
+        padding: 0.75rem 0 1rem;
+      }
+
+      .hero,
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: rgba(17, 28, 49, 0.86);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+      }
+
+      .hero {
+        padding: 0.85rem 1rem;
+        margin-bottom: 0.75rem;
+      }
+
+      h1,
+      h2,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 0.35rem;
+        font-size: clamp(1.45rem, 2.8vw, 2.35rem);
+        line-height: 1.05;
+      }
+
+      h2 {
+        margin-bottom: 0.65rem;
+        font-size: 1.15rem;
+      }
+
+      p {
+        margin-bottom: 0;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+
+      .panel {
+        padding: 0.85rem;
+      }
+
+      .results-panel {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      textarea,
+      pre,
+      input,
+      select {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #07101f;
+        color: var(--text);
+        font: 0.92rem/1.5 "Cascadia Code", "Fira Code", Consolas, monospace;
+      }
+
+      .code-frame {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #07101f;
+        overflow: hidden;
+      }
+
+      .line-numbers {
+        min-width: 3.2rem;
+        padding: 0.75rem 0.65rem;
+        border-right: 1px solid var(--line);
+        color: #64748b;
+        font: 0.92rem/1.5 "Cascadia Code", "Fira Code", Consolas, monospace;
+        text-align: right;
+        overflow: hidden;
+        user-select: none;
+        white-space: pre;
+      }
+
+      .code-frame textarea,
+      .code-frame pre {
+        border: 0;
+        border-radius: 0;
+        margin: 0;
+      }
+
+      textarea {
+        min-height: 260px;
+        max-height: 34vh;
+        padding: 0.75rem;
+        resize: vertical;
+      }
+
+      pre {
+        min-height: 150px;
+        max-height: 26vh;
+        overflow: auto;
+        padding: 0.75rem;
+        white-space: pre;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.45rem;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      input,
+      select {
+        padding: 0.55rem 0.75rem;
+      }
+
+      .example-selector {
+        margin-bottom: 0.65rem;
+      }
+
+      .pattern-details {
+        display: grid;
+        gap: 0.5rem;
+        margin-bottom: 0.65rem;
+        padding: 0.7rem;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel-strong);
+      }
+
+      .pattern-details h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .pattern-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
+      }
+
+      .pattern-item {
+        padding: 0.5rem;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(7, 16, 31, 0.72);
+      }
+
+      .pattern-item strong {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+
+      .pattern-item span {
+        color: var(--muted);
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 0.6rem;
+        align-items: end;
+        margin-top: 0.65rem;
+      }
+
+      .checkbox {
+        display: flex;
+        gap: 0.55rem;
+        align-items: center;
+        min-height: 38px;
+        color: var(--muted);
+      }
+
+      .checkbox input {
+        width: auto;
+      }
+
+      button {
+        min-height: 38px;
+        padding: 0.6rem 1rem;
+        border: 0;
+        border-radius: 999px;
+        color: #07101f;
+        font-weight: 800;
+        cursor: pointer;
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.7;
+      }
+
+      .status {
+        margin-top: 0.65rem;
+        min-height: 1.25rem;
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .error {
+        color: var(--danger);
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.55rem;
+        margin-bottom: 0.65rem;
+      }
+
+      .metric {
+        padding: 0.6rem;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel-strong);
+      }
+
+      .metric strong {
+        display: block;
+        font-size: 1.15rem;
+      }
+
+      .report {
+        display: grid;
+        gap: 0.55rem;
+        flex: 1;
+        min-height: 220px;
+        overflow: auto;
+      }
+
+      .report-card {
+        padding: 0.65rem;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #07101f;
+      }
+
+      .report-card h3 {
+        margin: 0 0 0.35rem;
+        font-size: 0.95rem;
+      }
+
+      .report-card p {
+        margin: 0.2rem 0;
+      }
+
+      .report-card ul {
+        margin: 0.25rem 0 0;
+        padding-left: 1.2rem;
+        color: var(--muted);
+      }
+
+      @media (max-width: 900px) {
+        .grid,
+        .controls,
+        .metrics,
+        .pattern-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <h1>AI-Assisted Secure Code Remediation System</h1>
+        <p>
+          Paste Python code, run the analyzer-backed remediation loop, and inspect the fixed code plus the
+          deterministic validation report. Mock mode is free and uses <code>mock/responses.json</code>.
+        </p>
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <h2>Input Code</h2>
+          <div class="example-selector">
+            <label for="exampleSelect">Load example snippet</label>
+            <select id="exampleSelect">
+              <option value="custom">Custom code</option>
+              <option value="sqli" selected>SQL Injection</option>
+              <option value="xss">XSS</option>
+              <option value="commandInjection">Command Injection</option>
+              <option value="pathTraversal">Path Traversal</option>
+              <option value="ssrf">SSRF</option>
+            </select>
+          </div>
+          <div id="patternDetails" class="pattern-details">
+            <h3>Vulnerability pattern</h3>
+            <p>Choose an example to see its configured sources, sanitizers, sinks, and implicit-flow setting.</p>
+          </div>
+          <label for="code">Python code to analyze</label>
+          <div class="code-frame">
+            <div id="inputLineNumbers" class="line-numbers" aria-hidden="true"></div>
+            <textarea id="code">def vulnerable_lookup(request, cursor):
+    user_id = request.args.get("id")
+    query = "SELECT * FROM users WHERE id = " + user_id
+    cursor.execute(query)
+</textarea>
+          </div>
+
+          <div class="controls">
+            <div>
+              <label for="iterations">Max iterations (1-3)</label>
+              <input id="iterations" type="number" min="1" max="3" value="3" />
+            </div>
+            <label class="checkbox">
+              <input id="useAi" type="checkbox" />
+              Use real AI API
+            </label>
+            <button id="runButton" type="button">Run remediation</button>
+          </div>
+
+          <div id="status" class="status"></div>
+        </div>
+
+        <div class="panel results-panel">
+          <h2>Results</h2>
+          <div class="metrics">
+            <div class="metric">
+              Initial
+              <strong id="initialCount">-</strong>
+            </div>
+            <div class="metric">
+              Final
+              <strong id="finalCount">-</strong>
+            </div>
+            <div class="metric">
+              Improvement
+              <strong id="improvement">-</strong>
+            </div>
+          </div>
+
+          <label for="finalCode">Final secure output</label>
+          <div class="code-frame">
+            <div id="outputLineNumbers" class="line-numbers" aria-hidden="true"></div>
+            <pre id="finalCode">Run the system to see generated code.</pre>
+          </div>
+
+          <label for="report">Comparative report</label>
+          <div id="report" class="report">
+            <div class="report-card">
+              <p>Run the system to see a readable validation report.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const button = document.getElementById("runButton");
+      const statusEl = document.getElementById("status");
+      const codeEl = document.getElementById("code");
+      const exampleSelectEl = document.getElementById("exampleSelect");
+      const finalCodeEl = document.getElementById("finalCode");
+      const reportEl = document.getElementById("report");
+      const initialCountEl = document.getElementById("initialCount");
+      const finalCountEl = document.getElementById("finalCount");
+      const improvementEl = document.getElementById("improvement");
+      const inputLineNumbersEl = document.getElementById("inputLineNumbers");
+      const outputLineNumbersEl = document.getElementById("outputLineNumbers");
+      const patternDetailsEl = document.getElementById("patternDetails");
+      const maxAllowedIterations = 3;
+      let vulnerabilityPatterns = [];
+      const exampleSnippets = {
+        sqli: `def vulnerable_lookup(request, cursor):
+    user_id = request.args.get("id")
+    query = "SELECT * FROM users WHERE id = " + user_id
+    cursor.execute(query)
+`,
+        xss: `def vulnerable_profile(request):
+    display_name = request.args.get("name")
+    html = "<h1>" + display_name + "</h1>"
+    render_template_string(html)
+`,
+        commandInjection: `def vulnerable_command(request):
+    host = request.args.get("host")
+    command = "ping -c 1 " + host
+    system(command)
+`,
+        pathTraversal: `def vulnerable_download(request):
+    filename = request.args.get("file")
+    open(filename)
+`,
+        ssrf: `def vulnerable_fetch(request):
+    target_url = request.args.get("url")
+    urlopen(target_url)
+`,
+      };
+      const examplePatternMap = {
+        sqli: "SQLi",
+        xss: "XSS",
+        commandInjection: "CommandInjection",
+        pathTraversal: "PathTraversal",
+        ssrf: "SSRF",
+      };
+
+      function setStatus(message, isError = false) {
+        statusEl.textContent = message;
+        statusEl.className = isError ? "status error" : "status";
+      }
+
+      function renderLineNumbers(target, content) {
+        const lineCount = Math.max(content.split("\n").length, 1);
+        target.textContent = Array.from({ length: lineCount }, (_, index) => index + 1).join("\n");
+      }
+
+      function syncInputLineNumbers() {
+        renderLineNumbers(inputLineNumbersEl, codeEl.value);
+      }
+
+      function setFinalCode(content) {
+        finalCodeEl.textContent = content;
+        renderLineNumbers(outputLineNumbersEl, content);
+      }
+
+      function syncScroll(source, target) {
+        target.scrollTop = source.scrollTop;
+      }
+
+      function loadExampleSnippet(exampleKey) {
+        if (!exampleSnippets[exampleKey]) {
+          renderPatternDetails(exampleKey);
+          return;
+        }
+
+        codeEl.value = exampleSnippets[exampleKey];
+        codeEl.scrollTop = 0;
+        syncInputLineNumbers();
+        renderPatternDetails(exampleKey);
+        setStatus(`Loaded ${exampleSelectEl.options[exampleSelectEl.selectedIndex].text} example.`);
+      }
+
+      function renderList(values) {
+        if (!values || values.length === 0) {
+          return "None configured";
+        }
+
+        return values.map(escapeHtml).join(", ");
+      }
+
+      function renderPatternDetails(exampleKey) {
+        const vulnerabilityName = examplePatternMap[exampleKey];
+        const pattern = vulnerabilityPatterns.find((item) => item.vulnerability === vulnerabilityName);
+
+        if (!vulnerabilityName) {
+          patternDetailsEl.innerHTML = `
+            <h3>Vulnerability pattern</h3>
+            <p>Custom code selected. Choose an example to see the matching pattern metadata.</p>
+          `;
+          return;
+        }
+
+        if (!pattern) {
+          patternDetailsEl.innerHTML = `
+            <h3>${escapeHtml(vulnerabilityName)} pattern</h3>
+            <p>Pattern metadata could not be loaded from <code>5_patterns.json</code>.</p>
+          `;
+          return;
+        }
+
+        patternDetailsEl.innerHTML = `
+          <h3>${escapeHtml(pattern.vulnerability)} pattern from 5_patterns.json</h3>
+          <div class="pattern-grid">
+            <div class="pattern-item">
+              <strong>Sources</strong>
+              <span>${renderList(pattern.sources)}</span>
+            </div>
+            <div class="pattern-item">
+              <strong>Sanitizers</strong>
+              <span>${renderList(pattern.sanitizers)}</span>
+            </div>
+            <div class="pattern-item">
+              <strong>Sinks</strong>
+              <span>${renderList(pattern.sinks)}</span>
+            </div>
+            <div class="pattern-item">
+              <strong>Implicit flows</strong>
+              <span>${escapeHtml(pattern.implicit || "no")}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      async function loadPatterns() {
+        try {
+          const response = await fetch("/patterns");
+          if (!response.ok) {
+            throw new Error("Pattern request failed");
+          }
+          vulnerabilityPatterns = await response.json();
+          renderPatternDetails(exampleSelectEl.value);
+        } catch (error) {
+          patternDetailsEl.innerHTML = `
+            <h3>Vulnerability pattern</h3>
+            <p>Could not load pattern metadata from <code>5_patterns.json</code>.</p>
+          `;
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function renderVulnerabilities(title, vulnerabilities) {
+        if (!vulnerabilities || vulnerabilities.length === 0) {
+          return `
+            <div class="report-card">
+              <h3>${title}</h3>
+              <p>No active vulnerabilities detected.</p>
+            </div>
+          `;
+        }
+
+        const items = vulnerabilities
+          .map((vulnerability) => {
+            const type = escapeHtml(vulnerability.type || "Unknown");
+            const severity = escapeHtml(vulnerability.severity || "unknown");
+            const line = escapeHtml(vulnerability.line || "unknown");
+            const description = escapeHtml(vulnerability.description || "No description available.");
+            return `<li><strong>${type}</strong> (${severity}) on line ${line}: ${description}</li>`;
+          })
+          .join("");
+
+        return `
+          <div class="report-card">
+            <h3>${title}</h3>
+            <ul>${items}</ul>
+          </div>
+        `;
+      }
+
+      function renderIterations(iterations) {
+        if (!iterations || iterations.length === 0) {
+          return `
+            <div class="report-card">
+              <h3>Iterations</h3>
+              <p>No remediation iterations were needed.</p>
+            </div>
+          `;
+        }
+
+        const items = iterations
+          .map((iteration) => {
+            const status = iteration.accepted ? "accepted" : "rejected";
+            return `<li>Iteration ${iteration.iteration}: ${status}. ${escapeHtml(iteration.reason)}</li>`;
+          })
+          .join("");
+
+        return `
+          <div class="report-card">
+            <h3>Iterations</h3>
+            <ul>${items}</ul>
+          </div>
+        `;
+      }
+
+      function renderReport(report) {
+        reportEl.innerHTML = `
+          <div class="report-card">
+            <h3>Summary</h3>
+            <p><strong>Initial vulnerabilities:</strong> ${report.initial_vulnerabilities}</p>
+            <p><strong>Final vulnerabilities:</strong> ${report.final_vulnerabilities}</p>
+            <p><strong>Improvement:</strong> ${report.improvement_percent}%</p>
+          </div>
+          ${renderVulnerabilities("Initial Findings", report.initial_report.vulnerabilities)}
+          ${renderVulnerabilities("Final Findings", report.final_report.vulnerabilities)}
+          ${renderIterations(report.iterations)}
+        `;
+      }
+
+      function readIterationCount() {
+        const iterationsInput = document.getElementById("iterations");
+        const value = Number(iterationsInput.value);
+
+        if (!Number.isInteger(value) || value < 1) {
+          throw new Error("Max iterations must be at least 1.");
+        }
+
+        if (value > maxAllowedIterations) {
+          throw new Error("Max iterations cannot be greater than 3.");
+        }
+
+        return value;
+      }
+
+      function formatApiError(payload) {
+        if (!payload || !payload.detail) {
+          return "Request failed";
+        }
+
+        if (typeof payload.detail === "string") {
+          return payload.detail;
+        }
+
+        if (Array.isArray(payload.detail)) {
+          return payload.detail
+            .map((item) => {
+              const field = Array.isArray(item.loc) ? item.loc[item.loc.length - 1] : "request";
+              return `${field}: ${item.msg}`;
+            })
+            .join(" ");
+        }
+
+        return JSON.stringify(payload.detail);
+      }
+
+      async function readResponsePayload(response) {
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          return response.json();
+        }
+
+        const text = await response.text();
+        return {
+          detail: text || `Request failed with status ${response.status}`,
+        };
+      }
+
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        setStatus("Running analyzer and remediation loop...");
+
+        try {
+          const maxIterations = readIterationCount();
+          const response = await fetch("/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: codeEl.value,
+              max_iterations: maxIterations,
+              use_ai: document.getElementById("useAi").checked,
+            }),
+          });
+
+          const payload = await readResponsePayload(response);
+          if (!response.ok) {
+            throw new Error(formatApiError(payload));
+          }
+
+          setFinalCode(payload.final_code);
+          renderReport(payload.report);
+          initialCountEl.textContent = payload.report.initial_vulnerabilities;
+          finalCountEl.textContent = payload.report.final_vulnerabilities;
+          improvementEl.textContent = `${payload.report.improvement_percent}%`;
+          setStatus("Done. The final code was validated by the analyzer.");
+        } catch (error) {
+          setStatus(error.message, true);
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      codeEl.addEventListener("input", syncInputLineNumbers);
+      codeEl.addEventListener("input", () => {
+        exampleSelectEl.value = "custom";
+      });
+      exampleSelectEl.addEventListener("change", () => loadExampleSnippet(exampleSelectEl.value));
+      codeEl.addEventListener("scroll", () => syncScroll(codeEl, inputLineNumbersEl));
+      finalCodeEl.addEventListener("scroll", () => syncScroll(finalCodeEl, outputLineNumbersEl));
+      syncInputLineNumbers();
+      setFinalCode(finalCodeEl.textContent);
+      loadPatterns();
+    </script>
+  </body>
+</html>
